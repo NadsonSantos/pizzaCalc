@@ -1,30 +1,35 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:pizzacalc/main.dart';
+import 'package:pizzacalc/core/constants/app_constants.dart';
+import 'package:pizzacalc/modules/order/models/order_draft.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('OrderDraft calculates total with delivery and extras', () {
+    final draft = OrderDraft(
+      pizzaCount: 2,
+      pizzaSabores: [{1}, {2}],
+      tipo: OrderType.entrega,
+      endereco: 'Rua Teste 123',
+      extraQuantities: {1: 1, 9: 2},
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    final total = draft.calculateTotal(
+      saborPrices: {1: 0, 2: 0},
+      extraPrices: {1: 5, 9: 6},
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // 2×35 + 5 delivery + 5 coca + 2×6 mousse = 92
+    expect(total, 92.0);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('OrderDraft pickup has no delivery fee', () {
+    final draft = OrderDraft(pizzaCount: 1, pizzaSabores: [{1}]);
+
+    final total = draft.calculateTotal(
+      saborPrices: {1: 0},
+      extraPrices: {},
+    );
+
+    expect(total, AppConstants.basePizzaPrice);
   });
 }
