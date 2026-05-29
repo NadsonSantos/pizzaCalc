@@ -53,9 +53,13 @@ class OrderDraft {
     var total = pizzaCount * AppConstants.basePizzaPrice;
 
     for (final sabores in pizzaSabores) {
+      if (sabores.isEmpty) continue;
+      double highest = 0;
       for (final saborId in sabores) {
-        total += saborPrices[saborId] ?? 0;
+        final price = saborPrices[saborId] ?? 0;
+        if (price > highest) highest = price;
       }
+      total += highest;
     }
 
     extraQuantities.forEach((extraId, qty) {
