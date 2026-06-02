@@ -43,15 +43,15 @@ class SeedData {
     Extra(id: 1, nome: 'Coca Cola', categoria: 'BEBIDA', preco: 7),
     Extra(id: 2, nome: 'Guaraná', categoria: 'BEBIDA', preco: 7),
 
-    Extra(id: 4, nome: 'Morango', categoria: 'GELADINHO', preco: 5),
+    Extra(id: 3, nome: 'Morango', categoria: 'GELADINHO', preco: 5),
     Extra(id: 5, nome: 'Chocolate', categoria: 'GELADINHO', preco: 5),
     Extra(id: 6, nome: 'Prestígio', categoria: 'GELADINHO', preco: 5),
     Extra(id: 7, nome: 'Ninho Com Nutella', categoria: 'GELADINHO', preco: 5),
     Extra(id: 9, nome: 'Morango Com Nutella', categoria: 'GELADINHO', preco: 5),
     Extra(id: 8, nome: 'Ninho Com Morango', categoria: 'GELADINHO', preco: 5),
 
-    Extra(id: 7, nome: 'Maracujá', categoria: 'MOUSSE', preco: 6),
-    Extra(id: 8, nome: 'Limão', categoria: 'MOUSSE', preco: 6),
-    Extra(id: 9, nome: 'Morango', categoria: 'MOUSSE', preco: 6),
+    Extra(id: 10, nome: 'Maracujá', categoria: 'MOUSSE', preco: 6),
+    Extra(id: 11, nome: 'Limão', categoria: 'MOUSSE', preco: 6),
+    Extra(id: 12, nome: 'Morango', categoria: 'MOUSSE', preco: 6),
   ];
 }

@@ -50,7 +50,7 @@ class OrderDraft {
     required Map<int, double> saborPrices,
     required Map<int, double> extraPrices,
   }) {
-    var total = pizzaCount * AppConstants.basePizzaPrice;
+    var total = 0.0;
 
     for (final sabores in pizzaSabores) {
       if (sabores.isEmpty) continue;

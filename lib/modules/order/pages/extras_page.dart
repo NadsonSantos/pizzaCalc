@@ -12,8 +12,7 @@ class ExtrasPage extends GetView<OrderWizardController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Extras')),
-      body: Obx(() {
-        return Column(
+      body: Column(
           children: [
             Expanded(
               child: ListView(
@@ -44,8 +43,7 @@ class ExtrasPage extends GetView<OrderWizardController> {
               ),
             ),
           ],
-        );
-      }),
+        ),
     );
   }
 }
@@ -66,25 +64,28 @@ class _CategorySection extends GetView<OrderWizardController> {
         Text(title, style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
         ...items.map((extra) {
-          final qty = controller.extraQuantity(extra.id);
-          return ListTile(
-            title: Text(extra.nome),
-            subtitle: qty > 0 ? Text('Quantidade: $qty') : null,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (qty > 0)
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    onPressed: () => controller.decrementExtra(extra.id),
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  onPressed: () => controller.incrementExtra(extra.id),
+          return Obx(() {
+              final qty = controller.extraQuantity(extra.id);
+
+              return ListTile(
+                title: Text(extra.nome),
+                subtitle: qty > 0 ? Text('Quantidade: $qty') : null,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (qty > 0)
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline),
+                        onPressed: () => controller.decrementExtra(extra.id),
+                      ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: () => controller.incrementExtra(extra.id),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
+              );
+            });
         }),
       ],
     );
