@@ -3,7 +3,8 @@ class AppConstants {
   static const deliveryFee = 5.0;
   static const minPizzas = 1;
   static const maxPizzas = 20;
-  static const minAddressLength = 1;
+  static const minAddressLength = 5;
+  static const maxClienteNomeLength = 80;
   static const storeName = 'PIZZARIA';
 }
 

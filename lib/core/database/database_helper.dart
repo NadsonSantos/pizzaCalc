@@ -20,12 +20,26 @@ class DatabaseHelper {
 
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    await _createV1Tables(db);
+    await _createV2Tables(db);
+    await _seedCatalog(db);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createV2Tables(db);
+      await _addPedidosV2Columns(db);
+    }
+  }
+
+  Future<void> _createV1Tables(Database db) async {
     await db.execute('''
       CREATE TABLE pedidos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,13 +98,65 @@ class DatabaseHelper {
         FOREIGN KEY (extra_id) REFERENCES extras(id)
       )
     ''');
+  }
 
+  Future<void> _createV2Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS clientes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        telefone TEXT NOT NULL,
+        endereco TEXT
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS rascunhos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        titulo TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        atualizado_em TEXT NOT NULL
+      )
+    ''');
+  }
+
+  Future<void> _addPedidosV2Columns(Database db) async {
+    final columns = await db.rawQuery('PRAGMA table_info(pedidos)');
+    final names = columns.map((c) => c['name'] as String).toSet();
+
+    if (!names.contains('cliente_id')) {
+      await db.execute(
+        'ALTER TABLE pedidos ADD COLUMN cliente_id INTEGER REFERENCES clientes(id)',
+      );
+    }
+    if (!names.contains('formas_pagamento')) {
+      await db.execute(
+        "ALTER TABLE pedidos ADD COLUMN formas_pagamento TEXT NOT NULL DEFAULT '[]'",
+      );
+    }
+    if (!names.contains('troco_para')) {
+      await db.execute('ALTER TABLE pedidos ADD COLUMN troco_para REAL');
+    }
+    if (!names.contains('observacao')) {
+      await db.execute('ALTER TABLE pedidos ADD COLUMN observacao TEXT');
+    }
+  }
+
+  Future<void> _seedCatalog(Database db) async {
     final batch = db.batch();
     for (final sabor in SeedData.sabores) {
-      batch.insert('sabores', sabor.toMap());
+      batch.insert(
+        'sabores',
+        sabor.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
     for (final extra in SeedData.extras) {
-      batch.insert('extras', extra.toMap());
+      batch.insert(
+        'extras',
+        extra.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     }
     await batch.commit(noResult: true);
   }

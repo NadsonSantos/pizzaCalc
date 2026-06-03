@@ -1,16 +1,22 @@
+import 'dart:convert';
+
 import '../../../core/constants/app_constants.dart';
 import '../../../core/database/database_helper.dart';
 import '../../catalog/models/extra.dart';
 import '../../catalog/models/sabor.dart';
 import '../../catalog/repositories/catalog_repository.dart';
+import '../../client/repositories/cliente_repository.dart';
 import '../models/order.dart';
 import '../models/order_draft.dart';
+import '../models/payment_method.dart';
 
 class OrderRepository {
-  OrderRepository(this._db, this._catalog);
+  OrderRepository(this._db, this._catalog, [ClienteRepository? clienteRepo])
+      : _clienteRepo = clienteRepo ?? ClienteRepository(_db);
 
   final DatabaseHelper _db;
   final CatalogRepository _catalog;
+  final ClienteRepository _clienteRepo;
 
   Future<int> saveOrder(OrderDraft draft) async {
     final db = await _db.database;
@@ -23,6 +29,12 @@ class OrderRepository {
     final total = draft.calculateTotal(
       saborPrices: saborPrices,
       extraPrices: extraPrices,
+    );
+
+    await _syncClienteEndereco(draft);
+
+    final formasJson = jsonEncode(
+      draft.formasPagamento.map((p) => p.dbValue).toList(),
     );
 
     return db.transaction((txn) async {
@@ -38,6 +50,11 @@ class OrderRepository {
         'taxa_entrega': draft.deliveryFeeAmount,
         'valor_total': total,
         'data': DateTime.now().toIso8601String(),
+        'cliente_id': draft.clienteId,
+        'formas_pagamento': formasJson,
+        'troco_para': draft.hasDinheiro ? draft.trocoPara : null,
+        'observacao':
+            draft.observacao.trim().isEmpty ? null : draft.observacao.trim(),
       });
 
       for (var i = 0; i < draft.pizzaCount; i++) {
@@ -66,6 +83,20 @@ class OrderRepository {
 
       return nextNumero;
     });
+  }
+
+  Future<void> _syncClienteEndereco(OrderDraft draft) async {
+    if (draft.clienteId == null) return;
+    final endereco = draft.endereco.trim();
+    if (endereco.isEmpty) return;
+
+    final cliente = await _clienteRepo.getById(draft.clienteId!);
+    if (cliente == null) return;
+
+    final clienteEndereco = cliente.endereco?.trim() ?? '';
+    if (clienteEndereco.isEmpty) {
+      await _clienteRepo.updateEndereco(draft.clienteId!, endereco);
+    }
   }
 
   Future<List<Order>> getAllOrders() async {
@@ -100,6 +131,19 @@ class OrderRepository {
   Future<Order> _loadOrderDetails(Map<String, dynamic> row) async {
     final db = await _db.database;
     final pedidoId = row['id'] as int;
+
+    String? clienteNome;
+    final clienteId = row['cliente_id'] as int?;
+    if (clienteId != null) {
+      final cliente = await _clienteRepo.getById(clienteId);
+      clienteNome = cliente?.nome;
+    }
+
+    final formasRaw = row['formas_pagamento'] as String? ?? '[]';
+    final formasList = (jsonDecode(formasRaw) as List<dynamic>)
+        .map((v) => PaymentMethod.fromDb(v as String))
+        .whereType<PaymentMethod>()
+        .toList();
 
     final pizzaRows = await db.query(
       'pizzas',
@@ -151,6 +195,11 @@ class OrderRepository {
       data: DateTime.parse(row['data'] as String),
       pizzas: pizzas,
       extras: extras,
+      clienteId: clienteId,
+      clienteNome: clienteNome,
+      formasPagamento: formasList,
+      trocoPara: (row['troco_para'] as num?)?.toDouble(),
+      observacao: row['observacao'] as String?,
     );
   }
 }

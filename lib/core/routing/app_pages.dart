@@ -7,7 +7,6 @@ import '../../modules/order/pages/extras_page.dart';
 import '../../modules/order/pages/new_order_page.dart';
 import '../../modules/order/pages/order_history_page.dart';
 import '../../modules/order/pages/order_summary_page.dart';
-import '../../modules/order/pages/order_type_page.dart';
 import '../../modules/order/pages/pizza_flavors_page.dart';
 import '../../ui/splash/splash_page.dart';
 import '../../ui/home/home_binding.dart';
@@ -29,11 +28,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.pizzaFlavors,
       page: () => const PizzaFlavorsPage(),
-      binding: OrderWizardBinding(),
-    ),
-    GetPage(
-      name: AppRoutes.orderType,
-      page: () => const OrderTypePage(),
       binding: OrderWizardBinding(),
     ),
     GetPage(

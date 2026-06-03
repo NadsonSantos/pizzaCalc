@@ -11,30 +11,42 @@ class PizzaFlavorsPage extends GetView<OrderWizardController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sabores')),
+      appBar: AppBar(
+        title: Obx(() {
+          final idx = controller.currentPizzaIndex.value + 1;
+          final total = controller.draft.value.pizzaCount;
+          return Text('Pizza $idx de $total');
+        }),
+      ),
       body: Obx(() {
         final draft = controller.draft.value;
-        final sabores = controller.sabores;
+        final pizzaIndex = controller.currentPizzaIndex.value;
+        final selected = draft.pizzaSabores[pizzaIndex];
+        final filtered = controller.filteredSabores;
+        final isLast = pizzaIndex >= draft.pizzaCount - 1;
 
         return Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: TextField(
+                decoration: const InputDecoration(
+                  hintText: 'Buscar sabor...',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: controller.setFlavorSearch,
+              ),
+            ),
+            const SizedBox(height: 8),
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: draft.pizzaCount,
-                itemBuilder: (context, pizzaIndex) {
-                  final selected = draft.pizzaSabores[pizzaIndex];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Pizza ${pizzaIndex + 1}',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text('Selecione sabores:'),
-                      const SizedBox(height: 8),
-                      ...sabores.map((sabor) {
+              child: filtered.isEmpty
+                  ? const Center(child: Text('Nenhum sabor encontrado.'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final sabor = filtered[index];
                         final isSelected = selected.contains(sabor.id);
                         return CheckboxListTile(
                           value: isSelected,
@@ -42,26 +54,34 @@ class PizzaFlavorsPage extends GetView<OrderWizardController> {
                           onChanged: (_) =>
                               controller.toggleSabor(pizzaIndex, sabor.id),
                         );
-                      }),
-                      if (pizzaIndex < draft.pizzaCount - 1)
-                        const Divider(height: 32),
-                    ],
-                  );
-                },
-              ),
+                      },
+                    ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
-              child: PrimaryButton(
-                label: 'Continuar',
-                onPressed: () {
-                  final error = controller.validateFlavorsStep();
-                  if (error != null) {
-                    Get.snackbar('Atenção', error);
-                    return;
-                  }
-                  Get.toNamed(AppRoutes.orderType);
-                },
+              child: Row(
+                children: [
+                  if (pizzaIndex > 0)
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: controller.goToPreviousPizza,
+                        child: const Text('Voltar'),
+                      ),
+                    ),
+                  if (pizzaIndex > 0) const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: PrimaryButton(
+                      label: isLast ? 'Continuar' : 'Próximo',
+                      onPressed: () {
+                        final goExtras = controller.advancePizzaOrExtras();
+                        if (goExtras) {
+                          Get.toNamed(AppRoutes.extras);
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

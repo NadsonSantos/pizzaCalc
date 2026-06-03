@@ -84,6 +84,19 @@ class OrderHistoryPage extends GetView<OrderHistoryController> {
                       ...p.sabores.map((s) => Text('- ${s.nome}')),
                     ],
                   )),
+              if (order.clienteNome != null) ...[
+                const SizedBox(height: 8),
+                Text('Cliente: ${order.clienteNome}'),
+              ],
+              if (order.formasPagamento.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text('Pagamento: ${order.formasPagamentoLabel}'),
+              ],
+              if (order.observacao != null &&
+                  order.observacao!.trim().isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text('Obs: ${order.observacao}'),
+              ],
               const SizedBox(height: 8),
               Text('Total: ${_currency.format(order.valorTotal)}'),
               const SizedBox(height: 16),

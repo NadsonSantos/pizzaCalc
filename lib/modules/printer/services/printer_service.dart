@@ -4,6 +4,7 @@ import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../order/models/order.dart';
+import '../../order/models/payment_method.dart';
 
 class PrinterService {
   final _currency = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
@@ -60,6 +61,26 @@ class PrinterService {
             : item.extra.nome;
         bytes.addAll(generator.text('${item.quantidade} $label'));
       }
+    }
+
+    if (order.formasPagamento.isNotEmpty) {
+      bytes.addAll(generator.text('Pagamento:'));
+      bytes.addAll(generator.text(order.formasPagamentoLabel));
+      if (order.formasPagamento.contains(PaymentMethod.dinheiro) &&
+          order.trocoPara != null) {
+        bytes.addAll(generator.text('Troco para:'));
+        bytes.addAll(generator.text(_currency.format(order.trocoPara!)));
+        final troco = order.trocoDevolver;
+        if (troco != null && troco > 0) {
+          bytes.addAll(generator.text('Troco:'));
+          bytes.addAll(generator.text(_currency.format(troco)));
+        }
+      }
+    }
+
+    if (order.observacao != null && order.observacao!.trim().isNotEmpty) {
+      bytes.addAll(generator.text('Obs:'));
+      bytes.addAll(generator.text(order.observacao!));
     }
 
     bytes.addAll(generator.hr());
