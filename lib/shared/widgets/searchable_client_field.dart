@@ -35,10 +35,9 @@ class _SearchableClientFieldState extends State<SearchableClientField> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: TextEditingController(text: nome),
-                enabled: false,
-                decoration: const InputDecoration(labelText: 'Nome'),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Nome: $nome', style: const TextStyle(fontSize: 16)),
               ),
               const SizedBox(height: 8),
               TextField(

@@ -262,9 +262,23 @@ class OrderWizardController extends GetxController {
   }
 
   Future<int> saveDraft() async {
+    await _syncClienteEnderecoIfNeeded();
     final id = await _draftRepo.saveDraft(draft.value);
     draft.update((d) => d!.rascunhoId = id);
     return id;
+  }
+
+  Future<void> _syncClienteEnderecoIfNeeded() async {
+    final d = draft.value;
+    if (d.clienteId == null) return;
+    final endereco = d.endereco.trim();
+    if (endereco.isEmpty) return;
+    final cliente = await _clienteRepo.getById(d.clienteId!);
+    if (cliente == null) return;
+    final clienteEndereco = cliente.endereco?.trim() ?? '';
+    if (clienteEndereco.isEmpty) {
+      await _clienteRepo.updateEndereco(d.clienteId!, endereco);
+    }
   }
 
   Future<void> loadDraft(int id) async {
